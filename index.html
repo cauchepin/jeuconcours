@@ -24,8 +24,10 @@
       box-shadow: 0 10px 40px rgba(0,0,0,0.2);
     }
     h1 { font-size: 24px; margin-bottom: 8px; color: #222; }
+    h2 { font-size: 18px; margin: 16px 0 6px; color: #222; }
     p { color: #666; margin-bottom: 24px; font-size: 15px; }
-    input {
+    #legal p { margin-bottom: 10px; font-size: 14px; }
+    input[type="text"], input[type="email"] {
       width: 100%;
       padding: 14px;
       margin-bottom: 14px;
@@ -34,6 +36,23 @@
       font-size: 16px;
     }
     input:focus { outline: none; border-color: #667eea; }
+    .consent {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      margin-bottom: 16px;
+      font-size: 13px;
+      color: #555;
+      line-height: 1.4;
+    }
+    .consent input {
+      margin-top: 3px;
+      width: 18px;
+      height: 18px;
+      flex-shrink: 0;
+      accent-color: #667eea;
+    }
+    .legal-link { color: #667eea; cursor: pointer; text-decoration: underline; }
     button {
       width: 100%;
       padding: 14px;
@@ -45,49 +64,100 @@
       font-weight: 600;
       cursor: pointer;
     }
-    button:hover { background: #5568d3; }
-    .rgpd { font-size: 12px; color: #999; margin-top: 12px; }
-    #merci { display: none; text-align: center; }
+    button:disabled { opacity: 0.6; cursor: not-allowed; }
+    .back { margin-top: 16px; background: #eee; color: #333; }
+    #success { display: none; text-align: center; }
+    #success h1 { color: #2e9e5b; }
+    #error { display: none; color: #c0392b; font-size: 14px; margin-top: 12px; text-align: center; }
+    #legal { display: none; }
   </style>
 </head>
 <body>
   <div class="card">
-    <form id="form" action="https://api.web3forms.com/submit" method="POST">
-      <h1>👋 Restons en contact</h1>
-      <p>Laissez-nous vos coordonnées, on vous recontacte rapidement.</p>
 
-      <input type="hidden" name="access_key" value="TA_CLE_WEB3FORMS">
-      <input type="hidden" name="subject" value="Nouveau prospect via QR code">
+    <form id="form">
+      <h1>Restons en contact 👋</h1>
+      <p>Laissez-moi vos coordonnées et je reviens vers vous rapidement.</p>
 
       <input type="text" name="prenom" placeholder="Prénom" required>
       <input type="text" name="nom" placeholder="Nom" required>
       <input type="email" name="email" placeholder="Email" required>
 
-      <button type="submit">Envoyer</button>
-      <p class="rgpd">Vos données sont utilisées uniquement pour vous recontacter. Aucune revente.</p>
+      <label class="consent">
+        <input type="checkbox" name="consentement" value="Oui" required>
+        <span>
+          J'accepte que mes données (nom, prénom, email) soient utilisées par
+          [NOM DE TON ENTREPRISE] pour me recontacter. Je peux retirer mon
+          consentement à tout moment.
+          <span class="legal-link" onclick="showLegal()">En savoir plus</span>
+        </span>
+      </label>
+
+      <button type="submit" id="btn">Envoyer</button>
+      <div id="error">Une erreur est survenue, merci de réessayer.</div>
     </form>
 
-    <div id="merci">
-      <h1>✅ Merci !</h1>
-      <p>Nous reviendrons vers vous très vite.</p>
+    <div id="success">
+      <h1>Merci ! ✅</h1>
+      <p>Vos informations ont bien été envoyées.</p>
     </div>
+
+    <div id="legal">
+      <h1>Protection des données</h1>
+      <h2>Responsable du traitement</h2>
+      <p>[NOM DE TON ENTREPRISE], [Adresse postale], [ton@email.fr]</p>
+      <h2>Données collectées</h2>
+      <p>Nom, prénom et adresse email.</p>
+      <h2>Finalité</h2>
+      <p>Vous recontacter suite à votre demande.</p>
+      <h2>Base légale</h2>
+      <p>Votre consentement (art. 6.1.a du RGPD).</p>
+      <h2>Durée de conservation</h2>
+      <p>3 ans maximum à compter du dernier contact.</p>
+      <h2>Vos droits</h2>
+      <p>Vous disposez d'un droit d'accès, de rectification, d'effacement et d'opposition. Pour l'exercer, écrivez à [ton@email.fr]. Vous pouvez aussi introduire une réclamation auprès de la CNIL (cnil.fr).</p>
+      <button type="button" class="back" onclick="hideLegal()">← Retour</button>
+    </div>
+
   </div>
 
   <script>
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxZlXNzznmefTUQknCzcMdFPV7I-Cdfm5CNkW-Ox8tgBfieRwag15rYiQcrQfRfJrxk/exec";
+
     const form = document.getElementById('form');
+    const btn = document.getElementById('btn');
+    const errorBox = document.getElementById('error');
+
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
-      const res = await fetch(form.action, {
-        method: 'POST',
-        body: new FormData(form)
-      });
-      if (res.ok) {
+      errorBox.style.display = 'none';
+      btn.disabled = true;
+      btn.textContent = 'Envoi...';
+
+      try {
+        await fetch(SCRIPT_URL, {
+          method: 'POST',
+          mode: 'no-cors',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: new URLSearchParams(new FormData(form)).toString()
+        });
         form.style.display = 'none';
-        document.getElementById('merci').style.display = 'block';
-      } else {
-        alert("Erreur, réessaie dans un instant.");
+        document.getElementById('success').style.display = 'block';
+      } catch (err) {
+        errorBox.style.display = 'block';
+        btn.disabled = false;
+        btn.textContent = 'Envoyer';
       }
     });
+
+    function showLegal() {
+      form.style.display = 'none';
+      document.getElementById('legal').style.display = 'block';
+    }
+    function hideLegal() {
+      document.getElementById('legal').style.display = 'none';
+      form.style.display = 'block';
+    }
   </script>
 </body>
 </html>
