@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Restons en contact</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .card {
+      background: #fff;
+      padding: 32px 24px;
+      border-radius: 16px;
+      width: 100%;
+      max-width: 400px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+    }
+    h1 { font-size: 24px; margin-bottom: 8px; color: #222; }
+    p { color: #666; margin-bottom: 24px; font-size: 15px; }
+    input {
+      width: 100%;
+      padding: 14px;
+      margin-bottom: 14px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      font-size: 16px;
+    }
+    input:focus { outline: none; border-color: #667eea; }
+    button {
+      width: 100%;
+      padding: 14px;
+      background: #667eea;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    button:hover { background: #5568d3; }
+    .rgpd { font-size: 12px; color: #999; margin-top: 12px; }
+    #merci { display: none; text-align: center; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <form id="form" action="https://api.web3forms.com/submit" method="POST">
+      <h1>👋 Restons en contact</h1>
+      <p>Laissez-nous vos coordonnées, on vous recontacte rapidement.</p>
+
+      <input type="hidden" name="access_key" value="TA_CLE_WEB3FORMS">
+      <input type="hidden" name="subject" value="Nouveau prospect via QR code">
+
+      <input type="text" name="prenom" placeholder="Prénom" required>
+      <input type="text" name="nom" placeholder="Nom" required>
+      <input type="email" name="email" placeholder="Email" required>
+
+      <button type="submit">Envoyer</button>
+      <p class="rgpd">Vos données sont utilisées uniquement pour vous recontacter. Aucune revente.</p>
+    </form>
+
+    <div id="merci">
+      <h1>✅ Merci !</h1>
+      <p>Nous reviendrons vers vous très vite.</p>
+    </div>
+  </div>
+
+  <script>
+    const form = document.getElementById('form');
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const res = await fetch(form.action, {
+        method: 'POST',
+        body: new FormData(form)
+      });
+      if (res.ok) {
+        form.style.display = 'none';
+        document.getElementById('merci').style.display = 'block';
+      } else {
+        alert("Erreur, réessaie dans un instant.");
+      }
+    });
+  </script>
+</body>
+</html>
